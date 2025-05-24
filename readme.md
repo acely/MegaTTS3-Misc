@@ -117,27 +117,41 @@ The pretrained checkpoint can be found at [Google Drive](https://drive.google.co
 ## Inference
 
 **Command-Line Usage (Standard)**
-``` bash
+<br>
+**命令行使用方式（标准模式）**
+```bash
 # p_w (intelligibility weight), t_w (similarity weight). Typically, prompt with more noises requires higher p_w and t_w
+# p_w（可懂度权重），t_w（相似度权重）。通常，提示音频中的噪声越大，所需的 p_w 和 t_w 值也应越高。
 python tts/infer_cli.py --input_wav 'assets/Chinese_prompt.wav'  --input_text "另一边的桌上,一位读书人嗤之以鼻道,'佛子三藏,神子燕小鱼是什么样的人物,李家的那个李子夜如何与他们相提并论？'" --output_dir ./gen
 
 # As long as audio volume and pronunciation are appropriate, increasing --t_w within reasonable ranges (2.0~5.0)
 # will increase the generated speech's expressiveness and similarity (especially for some emotional cases).
+# 只要输入音频的音量和发音合适，在合理范围内（2.0~5.0）增加 --t_w 的值 
+# 可以提升生成语音的表现力和相似度（尤其在一些情感丰富的语句中效果更明显）。
 python tts/infer_cli.py --input_wav 'assets/English_prompt.wav' --input_text 'As his long promised tariff threat turned into reality this week, top human advisers began fielding a wave of calls from business leaders, particularly in the automotive sector, along with lawmakers who were sounding the alarm.' --output_dir ./gen --p_w 2.0 --t_w 3.0
 ```
+
 **Command-Line Usage (for TTS with Accents)**
-``` bash
+<br>
+**命令行使用方式（带口音的语音合成）**
+```bash
 # When p_w (intelligibility weight) ≈ 1.0, the generated audio closely retains the speaker’s original accent. As p_w increases, it shifts toward standard pronunciation. 
 # t_w (similarity weight) is typically set 0–3 points higher than p_w for optimal results.
 # Useful for accented TTS or solving the accent problems in cross-lingual TTS.
+# 当 p_w（可懂度权重）≈1.0 时，生成的语音会更接近说话人的原始口音。随着 p_w 增大，发音会逐渐趋向标准普通话。 
+# t_w（相似度权重）一般比 p_w 高 0～3 分较为理想，以获得更好的效果。 
+# 此设置适用于带口音的语音合成，或解决跨语言语音合成中的口音问题。
 python tts/infer_cli.py --input_wav 'assets/English_prompt.wav' --input_text '这是一条有口音的音频。' --output_dir ./gen --p_w 1.0 --t_w 3.0
 
 python tts/infer_cli.py --input_wav 'assets/English_prompt.wav' --input_text '这条音频的发音标准一些了吗？' --output_dir ./gen --p_w 2.5 --t_w 2.5
 ```
 
 **Web UI Usage**
-``` bash
+<br>
+**网页界面使用方式**
+```bash
 # We also support cpu inference, but it may take about 30 seconds (for 10 inference steps).
+# 我们也支持在 CPU 上运行推理，但可能需要约 30 秒（完成 10 步推理过程）。
 python tts/gradio_api.py
 ```
 
