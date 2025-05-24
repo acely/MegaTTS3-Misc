@@ -43,7 +43,7 @@ def main():
         print("="*50 + "\n")
         return
 
-    print(f"Loading WavVAE hparams from: {infer_ins.hp_wavvae_path}")
+    print(f"Attempting to load WavVAE hparams from directory: {infer_ins.wavvae_exp_name}")
     
     # Load WAV file
     try:
