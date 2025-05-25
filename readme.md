@@ -116,6 +116,26 @@ The pretrained checkpoint can be found at [Google Drive](https://drive.google.co
 
 ## Inference
 
+Note: The command-line interface (`tts/infer_cli.py`) now includes a `--wavvae_load_mode` option:
+*   `--wavvae_load_mode {"full", "decoder_only"}`: This allows you to control how the WavVAE model is loaded.
+    *   `full` (default): Loads the complete WavVAE model (encoder and decoder). This is necessary if you are only providing a `.wav` file and need the system to generate its latent representation (`.npy` file).
+    *   `decoder_only`: Loads only the decoder part of the WavVAE model. Use this mode if you are providing both a `.wav` file and its corresponding pre-computed `.npy` latent file, and you wish to save GPU RAM by not loading the WavVAE encoder. The system will use your provided `.npy` file and will not attempt to re-encode the `.wav` file with its internal VAE encoder.
+For example, to save memory when using a pre-computed `.npy` file:
+`python tts/infer_cli.py --input_wav 'path/to/your.wav' --input_text "Some text." --output_dir ./gen --wavvae_load_mode decoder_only`
+(The script will expect `path/to/your.npy` to exist and be used).
+
+---
+**Chinese Translation / 中文说明:**
+
+注意：命令行界面 (`tts/infer_cli.py`) 现在包含一个 `--wavvae_load_mode` 选项：
+*   `--wavvae_load_mode {"full", "decoder_only"}`：此选项允许您控制WavVAE模型的加载方式。
+    *   `full` (默认)：加载完整的WavVAE模型（编码器和解码器）。如果您仅提供 `.wav` 文件并且需要系统生成其潜在表示（`.npy` 文件），则此模式是必需的。
+    *   `decoder_only`：仅加载WavVAE模型的解码器部分。如果您同时提供 `.wav` 文件及其对应的预计算 `.npy` 潜在文件，并且希望通过不加载WavVAE编码器来节省GPU RAM，请使用此模式。系统将使用您提供的 `.npy` 文件，并且不会尝试使用其内部VAE编码器重新编码 `.wav` 文件。
+例如，在使用预计算的 `.npy` 文件时节省内存：
+`python tts/infer_cli.py --input_wav 'path/to/your.wav' --input_text "一些文本。" --output_dir ./gen --wavvae_load_mode decoder_only`
+（脚本将期望 `path/to/your.npy` 存在并被使用）。
+---
+
 **Command-Line Usage (Standard)**
 <br>
 **命令行使用方式（标准模式）**
