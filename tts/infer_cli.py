@@ -72,6 +72,7 @@ class MegaTTS3DiTInfer():
             dur_ckpt_path='duration_lm',
             g2p_exp_name='g2p',
             precision=torch.float16,
+            wavvae_load_mode="full", # New parameter
             **kwargs
         ):
         self.sr = 24000
@@ -80,6 +81,7 @@ class MegaTTS3DiTInfer():
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.device = device
         self.precision = precision
+        self.wavvae_load_mode = wavvae_load_mode # Store the new parameter
 
         # build models
         self.dit_exp_name = os.path.join(ckpt_root, dit_exp_name)
@@ -148,13 +150,53 @@ class MegaTTS3DiTInfer():
         ''' Wav VAE '''
         self.hp_wavvae = hp_wavvae = set_hparams(f'{self.wavvae_exp_name}/config.yaml', global_hparams=False)
         from tts.modules.wavvae.decoder.wavvae_v3 import WavVAE_V3
-        self.wavvae = WavVAE_V3(hparams=hp_wavvae)
-        if os.path.exists(f'{self.wavvae_exp_name}/model_only_last.ckpt'):
-            load_ckpt(self.wavvae, f'{self.wavvae_exp_name}/model_only_last.ckpt', 'model_gen', strict=True)
-            self.has_vae_encoder = True
+
+        # Determine initialization flags based on wavvae_load_mode
+        if self.wavvae_load_mode == "decoder_only":
+            init_enc = False
+            init_dec = True
+            print("Initializing WavVAE_V3 with: init_encoder=False, init_decoder=True")
+        elif self.wavvae_load_mode == "full":
+            init_enc = True
+            init_dec = True
+            print("Initializing WavVAE_V3 with: init_encoder=True, init_decoder=True")
         else:
-            load_ckpt(self.wavvae, f'{self.wavvae_exp_name}/decoder.ckpt', 'model_gen', strict=False)
-            self.has_vae_encoder = False
+            # This case should ideally be caught by the earlier check in build_model,
+            # but as a safeguard:
+            raise ValueError(f"Unknown wavvae_load_mode for WavVAE_V3 instantiation: {self.wavvae_load_mode}")
+
+        self.wavvae = WavVAE_V3(hparams=hp_wavvae, init_encoder=init_enc, init_decoder=init_dec)
+
+        # The rest of the checkpoint loading logic based on self.wavvae_load_mode remains the same as modified previously:
+        if self.wavvae_load_mode == "decoder_only":
+            print("Attempting to load WavVAE in decoder_only mode.")
+            decoder_ckpt_path = f'{self.wavvae_exp_name}/decoder.ckpt'
+            if os.path.exists(decoder_ckpt_path):
+                load_ckpt(self.wavvae, decoder_ckpt_path, 'model_gen', strict=False)
+                self.has_vae_encoder = False # Encoder weights are not loaded / not expected
+                print(f"Loaded WavVAE decoder from: {decoder_ckpt_path}")
+            else:
+                print(f"Warning: WavVAE decoder.ckpt not found at {decoder_ckpt_path}. WavVAE might not be functional.")
+                self.has_vae_encoder = False # Or raise an error
+        elif self.wavvae_load_mode == "full":
+            print("Attempting to load WavVAE in full (encoder+decoder) mode.")
+            full_model_ckpt_path = f'{self.wavvae_exp_name}/model_only_last.ckpt'
+            decoder_ckpt_path = f'{self.wavvae_exp_name}/decoder.ckpt'
+            if os.path.exists(full_model_ckpt_path):
+                load_ckpt(self.wavvae, full_model_ckpt_path, 'model_gen', strict=True)
+                self.has_vae_encoder = True
+                print(f"Loaded full WavVAE (encoder+decoder) from: {full_model_ckpt_path}")
+            elif os.path.exists(decoder_ckpt_path):
+                print(f"Full WavVAE model_only_last.ckpt not found at {full_model_ckpt_path}. Falling back to decoder.ckpt for full mode.")
+                load_ckpt(self.wavvae, decoder_ckpt_path, 'model_gen', strict=False)
+                self.has_vae_encoder = False # Encoder part is missing
+                print(f"Loaded WavVAE decoder (fallback) from: {decoder_ckpt_path}")
+            else:
+                print(f"Warning: Neither model_only_last.ckpt nor decoder.ckpt found for WavVAE in {self.wavvae_exp_name}. WavVAE might not be functional.")
+                self.has_vae_encoder = False # Or raise an error
+        else:
+            raise ValueError(f"Unknown wavvae_load_mode: {self.wavvae_load_mode}")
+
         self.wavvae.eval()
         self.wavvae.to(device)
         self.vae_stride = hp_wavvae.get('vae_stride', 4)
@@ -255,16 +297,35 @@ class MegaTTS3DiTInfer():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input_wav', type=str)
-    parser.add_argument('--input_text', type=str)
-    parser.add_argument('--output_dir', type=str)
+    parser.add_argument('--input_wav', type=str, required=True)
+    parser.add_argument('--input_text', type=str, required=True)
+    parser.add_argument('--output_dir', type=str, required=True)
     parser.add_argument('--time_step', type=int, default=32, help='Inference steps of Diffusion Transformer')
     parser.add_argument('--p_w', type=float, default=1.6, help='Intelligibility Weight')
     parser.add_argument('--t_w', type=float, default=2.5, help='Similarity Weight')
+    parser.add_argument('--wavvae_load_mode', type=str, choices=["full", "decoder_only"], default=None, 
+                        help="Mode for loading WavVAE: 'full' (encoder+decoder) or 'decoder_only'. "
+                             "If not set, it will be inferred based on whether an NPY latent_file is effectively used.")
     args = parser.parse_args()
     wav_path, input_text, out_path, time_step, p_w, t_w = args.input_wav, args.input_text, args.output_dir, args.time_step, args.p_w, args.t_w
 
-    infer_ins = MegaTTS3DiTInfer()
+    mode_to_pass = args.wavvae_load_mode
+    if mode_to_pass is None:
+        # Infer mode if not explicitly set by user
+        potential_npy_path = wav_path.replace('.wav', '.npy')
+        if os.path.exists(potential_npy_path):
+            print("`--wavvae_load_mode` not specified. Defaulting to 'full'. "
+                  "If providing an NPY file and wishing to save RAM, explicitly set `--wavvae_load_mode decoder_only`.")
+            mode_to_pass = "full"
+        else:
+            # If no corresponding .npy file exists, 'full' mode is necessary to generate the latent.
+            print("No corresponding .npy file found. Defaulting `--wavvae_load_mode` to 'full'.")
+            mode_to_pass = "full"
+    
+    # Instantiate MegaTTS3DiTInfer with the determined mode
+    # Assuming MegaTTS3DiTInfer() takes other relevant args from its __init__ defaults or env vars.
+    # If other args like ckpt_root need to be passed from command line, they should be added to parser and passed here.
+    infer_ins = MegaTTS3DiTInfer(wavvae_load_mode=mode_to_pass)
 
     with open(wav_path, 'rb') as file:
         file_content = file.read()

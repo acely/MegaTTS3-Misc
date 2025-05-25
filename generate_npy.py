@@ -27,7 +27,7 @@ def main():
     # Initialize MegaTTS3DiTInfer
     # This will also load hparams for wavvae if checkpoints are set up correctly
     try:
-        infer_ins = MegaTTS3DiTInfer(device=args.device, ckpt_root=args.ckpt_root)
+        infer_ins = MegaTTS3DiTInfer(device=args.device, ckpt_root=args.ckpt_root, wavvae_load_mode="full")
     except Exception as e:
         print(f"Error initializing MegaTTS3DiTInfer: {e}")
         print("Please ensure your checkpoints are correctly structured in the --ckpt_root directory.")
