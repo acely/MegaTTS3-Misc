@@ -1,0 +1,2 @@
+The `mel_filters.npz` data file, required by `mel_filters` from whisper
+must be manually placed in `tts/utils/audio_utils/assets/`.
