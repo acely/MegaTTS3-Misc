@@ -14,9 +14,9 @@
 
 import torch
 import torch.nn.functional as F
-import whisper
 import librosa
 from copy import deepcopy
+from tts.utils.audio_utils.whisper_mel_utils import log_mel_spectrogram
 from tts.utils.text_utils.ph_tone_convert import split_ph_timestamp, split_ph
 from tts.utils.audio_utils.align import mel2token_to_dur
 
@@ -40,7 +40,7 @@ def g2p(self, text_inp):
 def align(self, wav):
     with torch.inference_mode():
         whisper_wav = librosa.resample(wav, orig_sr=self.sr, target_sr=16000)
-        mel = torch.FloatTensor(whisper.log_mel_spectrogram(whisper_wav).T).to(self.device)[None].transpose(1,2)
+        mel = torch.FloatTensor(log_mel_spectrogram(whisper_wav).T).to(self.device)[None].transpose(1,2)
         prompt_max_frame = mel.size(2) // self.fm * self.fm
         mel = mel[:, :, :prompt_max_frame]
         token = torch.LongTensor([[798]]).to(self.device)
