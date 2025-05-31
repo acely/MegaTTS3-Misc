@@ -1,0 +1,148 @@
+acous_params:
+- - 480
+  - 1200
+  - 80
+- - 240
+  - 1200
+  - 160
+amp: true
+audio_num_mel_bins: 160
+audio_sample_rate: 24000
+base_config:
+- ./base_config.yaml
+c_spk_enc: 512
+char_dict_size: 15000
+conv_use_pos: false
+dec0_dilations:
+- 1
+- 2
+- 4
+- 1
+- 2
+- 4
+- 1
+dec0_kernel_size: 3
+dec_dilations:
+- 1
+- 2
+- 1
+- 2
+- 1
+dec_ffn_kernel_size: 9
+dec_inp_add_noise: false
+dec_kernel_size: 5
+dec_layers: 4
+dec_post_net_kernel: 3
+decoder_rnn_dim: 0
+decoder_type: conv
+dropout: 0.0
+ds_add_pitch_embed: false
+dur_alpha: 1.0
+dur_context_enc: true
+dur_log: true
+dur_predictor_kernel: 3
+dur_predictor_layers: 2
+dur_use_char: true
+dur_use_spk: true
+enc_dec_norm: ln
+enc_dilations:
+- 1
+- 1
+- 1
+- 1
+enc_ffn_kernel_size: 5
+enc_kernel_size: 5
+enc_layers: 8
+enc_post_net_kernel: 3
+enc_pre_ln: true
+enc_prenet: true
+encoder_K: 8
+encoder_type: rel_fft
+f0_max: 600
+f0_min: 60
+ffn_act: gelu
+ffn_hidden_size: 1024
+fft_size: 1200
+fg_spk_enc_hidden: 256
+fmax: 12000
+fmin: 0
+frames_multiple: 8
+gen_dir_name: ''
+hidden_size: 512
+hop_size: 240
+ignore_begin_end_sil: false
+keep_c0_init: true
+kl_min: 0
+kl_start_steps: 1
+latent_dim: 32
+latent_size: 256
+layers_in_block: 2
+ling_label_dict_size:
+- 20
+- 4
+- 5
+- 2
+- 3
+- 3
+- 3
+- 6
+- 15
+ling_labels:
+- tone
+loud_norm: false
+max_input_tokens: 1550
+mel_vmax: 0.5
+mel_vmin: -6
+min_frames: 50
+mix_melout_timbre: true
+mix_ph_timbre: false
+mixed_precision: bf16
+no_text_enc: false
+num_heads: 2
+out_wav_norm: true
+pad_frames: false
+
+precision: bf16
+seed: 1234
+use_bert_input: false
+use_cfg: true
+use_char: true
+use_cur_global: false
+use_cur_global_dec: true
+use_dit_1b: false
+use_dur_embed: true
+use_dur_mask_embed: true
+use_ema: false
+use_expand_ph: true
+use_finegrained_spk: false
+use_global_lat: false
+use_gt_dur: false
+use_gt_f0: false
+use_mix_spk_embed: false
+use_new_vae: false
+use_ph_level_f0: false
+use_ph_pos_embed: true
+use_pitch_embed: false
+use_pitch_embed_dec: false
+use_pitch_pred: true
+use_pos_embed: true
+use_qk_norm: true
+use_random_spk_embed: false
+use_seq_cfg: true
+use_spk_embed: false
+use_spk_enc: true
+use_spk_id: false
+use_uv: true
+use_vae: true
+use_vpcfm: true
+use_vqvae: true
+use_word_encoder: true
+use_word_input: false
+vae_dur_grad: 0.1
+vae_enc_hidden_size: 384
+vae_stride: 4
+vae_word_conder_layers: 0
+vq_stride: 8
+vqvae_start_steps: 0
+win_size: 1200
+word_dict_size: 10000
