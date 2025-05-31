@@ -51,8 +51,13 @@ class WavVAE_V3(nn.Module):
             from tts.modules.wavvae.decoder.hifigan_modules import Generator, Upsample
             self.latent_upsampler = Upsample(320, 4)
             self.decoder = Generator(
-                input_size_=160, ngf=128, n_residual_layers=4,
-                num_band=1, args=args, ratios=[5,4,4,3])
+                input_size_=args.n_mel_channels,
+                ngf=args.ngf if hasattr(args, 'ngf') else 128,
+                n_residual_layers=args.n_residual_layers,
+                num_band=args.num_band if hasattr(args, 'num_band') else 1,
+                args=args,
+                ratios=args.up_sample
+            )
         else:
             self.proj_to_decoder = None
             self.latent_upsampler = None

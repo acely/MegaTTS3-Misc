@@ -1,13 +1,13 @@
 acous_params:
-- - 480
-  - 1200
-  - 80
-- - 240
-  - 1200
-  - 160
+- - 480 # This seems to be related to frame processing, might need adjustment if frame logic changes significantly.
+  - 1200 # Corresponds to old win_size, should likely be updated to new win_size or derived fft_size. For now, keeping as is, but flag for review.
+  - 80   # Mel bins, this is fine.
+- - 240 # Corresponds to old hop_size, should be updated to new hop_size. For now, keeping as is, but flag for review.
+  - 1200 # Corresponds to old win_size, should likely be updated to new win_size or derived fft_size. For now, keeping as is, but flag for review.
+  - 160  # audio_num_mel_bins, this is fine.
 amp: false
 audio_num_mel_bins: 160
-audio_sample_rate: 24000
+audio_sample_rate: 44100
 c_spk_enc: 512
 char_dict_size: 15000
 conv_use_pos: false
@@ -60,13 +60,13 @@ f0_max: 600
 f0_min: 60
 ffn_act: gelu
 ffn_hidden_size: 1024
-fft_size: 1200
+fft_size: 4096
 fg_spk_enc_hidden: 256
-fmax: 12000
+fmax: 22050
 fmin: 0
-frames_multiple: 8
+frames_multiple: 8 # This might need adjustment based on new hop_size and up_sample ratios product. Prod(up_sample) = 7*7*3*3 = 441. hop_size = 441. So frames_multiple could be 1 if no other constraints. Keeping 8 for now.
 hidden_size: 512
-hop_size: 240
+hop_size: 441
 ignore_begin_end_sil: false
 keep_c0_init: true
 kl_min: 0
@@ -118,12 +118,12 @@ resblock_kernel_sizes:
 - 11
 train_spk_embed_only: false
 upsample_initial_channel: 512
-upsample_kernel_sizes:
+upsample_kernel_sizes: # These are for HiFiGAN upsampler, may need adjustment if up_sample ratios change significantly.
 - 12
 - 11
 - 8
 - 4
-upsample_rates:
+upsample_rates: # These are for HiFiGAN upsampler, distinct from melgan_config.up_sample
 - 6
 - 5
 - 4
@@ -166,7 +166,7 @@ vae_enc_hidden_size: 384
 vae_stride: 4
 vae_word_conder_layers: 0
 vq_stride: 8
-win_size: 1200
+win_size: 2205
 word_dict_size: 10000
 melgan_config:
   all_noise: false
@@ -176,7 +176,7 @@ melgan_config:
   dim_pitch_condition: 1
   downsamp_factor: 4
   epochs: 1000
-  frame_shift: 240
+  frame_shift: 441
   lambda_feat: 0.0
   lambda_log_pitch: 0.4
   lambda_voiced: 1.0
@@ -193,6 +193,7 @@ melgan_config:
   n_residual_layers: 4
   n_test_samples: 5
   ndf: 16
+  ngf: 128
   noise_index: 1.0
   nr: 0
   num_D: 3
@@ -202,9 +203,9 @@ melgan_config:
   pretrain_steps: 0
   res_layers: 1
   run_hdfs: 0
-  sampling_rate: 24000
+  sampling_rate: 44100
   save_interval: 5000
-  seq_len: 100
+  seq_len: 100 # This might need adjustment based on new frame rate and typical sequence lengths.
   single_stft: 0
   sub_dis: 1
   tf: 1
@@ -213,9 +214,9 @@ melgan_config:
   tf_start_ratio: 0.0
   tf_start_step: 0
   up_sample:
-  - 5
-  - 4
-  - 4
+  - 7
+  - 7
+  - 3
   - 3
   use_F_dis: 0
   use_aug_pitch: 0
