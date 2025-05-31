@@ -12,3 +12,5 @@ Key findings:
 This confirms that the limitation is a design choice originating from these configurations. 
 
 Modifying this rate would likely require retraining or fine-tuning the existing models for optimal performance at a different sample rate.
+
+The WavVAE decoder (based on HiFi-GAN) takes the generated acoustic latents (concatenated with the prompt latent for seamless transition) and synthesizes the final output waveform.
