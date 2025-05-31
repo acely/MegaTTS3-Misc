@@ -8,6 +8,7 @@ acous_params:
 amp: false
 audio_num_mel_bins: 160
 audio_sample_rate: 44100
+segment_size: 8192
 c_spk_enc: 512
 char_dict_size: 15000
 conv_use_pos: false
